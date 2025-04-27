@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import toast from 'react-hot-toast'
+import { v4 as uuidv4 } from 'uuid'; // Import uuid
 
 // Define message type
 type Message = {
@@ -14,25 +15,25 @@ type Message = {
   timestamp: Date
 }
 
-// Define conversation type
+// Define conversation type (simplified for dummy data)
 type Conversation = {
-  id?: string
+  id: string
   title: string
   messages: Message[]
-  createdAt?: Date
-  updatedAt?: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 // Initial welcome messages
 const WELCOME_MESSAGES: Message[] = [
   {
-    id: '1',
+    id: uuidv4(), // Use uuid
     content: "Hello! I'm your Polaris college counselor assistant. How can I help with your college journey today?",
     sender: 'counselor' as 'counselor',
     timestamp: new Date()
   },
   {
-    id: '2',
+    id: uuidv4(), // Use uuid
     content: "I can answer questions about applications, essays, financial aid, standardized tests, and more. What would you like to discuss?",
     sender: 'counselor' as 'counselor',
     timestamp: new Date()
@@ -46,151 +47,42 @@ const FALLBACK_RESPONSES = [
   "Sorry, I couldn't process that request. Let's try a different approach to your college application questions."
 ]
 
+// Dummy conversation data
+const DUMMY_CONVERSATIONS: Conversation[] = [
+  {
+    id: 'dummy1',
+    title: 'Previous Chat about Essays',
+    messages: [
+      ...WELCOME_MESSAGES,
+      { id: uuidv4(), content: 'Tell me about writing a good college essay.', sender: 'user', timestamp: new Date(Date.now() - 1000 * 60 * 5) },
+      { id: uuidv4(), content: 'A good essay is authentic and shows your personality. Focus on a specific moment or theme.', sender: 'counselor', timestamp: new Date(Date.now() - 1000 * 60 * 4) },
+    ],
+    createdAt: new Date(Date.now() - 1000 * 60 * 10),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 4),
+  },
+  {
+    id: 'dummy2',
+    title: 'Financial Aid Questions',
+    messages: [
+      WELCOME_MESSAGES[0], // Just the first welcome message for variety
+      { id: uuidv4(), content: 'What is the FAFSA?', sender: 'user', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24) },
+      { id: uuidv4(), content: 'The FAFSA (Free Application for Federal Student Aid) determines your eligibility for federal grants, loans, and work-study.', sender: 'counselor', timestamp: new Date(Date.now() - 1000 * 60 * 60 * 23.9) },
+    ],
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 25),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 23.9),
+  },
+];
+
 export default function CounselorChat() {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<Message[]>(WELCOME_MESSAGES)
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [chatHistory, setChatHistory] = useState<string>('')
   const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null)
-  const [conversations, setConversations] = useState<Conversation[]>([])
+  const [conversations, setConversations] = useState<Conversation[]>(DUMMY_CONVERSATIONS) // Use dummy data
   const [showHistory, setShowHistory] = useState(false)
-  
-  // Fetch user's saved conversations
-  useEffect(() => {
-    if (session?.user?.email) {
-      fetchConversations();
-    }
-  }, [session]);
-  
-  // Fetch conversations from the API
-  const fetchConversations = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/chat');
-      if (!response.ok) {
-        throw new Error('Failed to fetch conversations');
-      }
-      const data = await response.json();
-      setConversations(data.conversations || []);
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      toast.error('Failed to load your conversation history');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Save the current conversation
-  const saveConversation = async () => {
-    if (!session?.user?.email || messages.length <= 2) {
-      // Don't save if there are only welcome messages
-      return;
-    }
-    
-    try {
-      setIsLoading(true);
-      
-      // Create a title from the first user message
-      const firstUserMessage = messages.find(m => m.sender === 'user');
-      const title = firstUserMessage ? 
-        (firstUserMessage.content.length > 30 ? 
-          firstUserMessage.content.substring(0, 30) + '...' : 
-          firstUserMessage.content) : 
-        'New Conversation';
-      
-      const conversation: Conversation = {
-        id: currentConversation?.id,
-        title,
-        messages,
-      };
-      
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ conversation }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save conversation');
-      }
-      
-      const data = await response.json();
-      setCurrentConversation(data.conversation);
-      toast.success('Conversation saved');
-      
-      // Refresh the conversation list
-      fetchConversations();
-    } catch (error) {
-      console.error('Error saving conversation:', error);
-      toast.error('Failed to save conversation');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Delete a conversation
-  const deleteConversation = async (id: string) => {
-    try {
-      setIsLoading(true);
-      
-      const response = await fetch(`/api/chat?id=${id}`, {
-        method: 'DELETE',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete conversation');
-      }
-      
-      // Update current conversation if it was deleted
-      if (currentConversation?.id === id) {
-        setCurrentConversation(null);
-        setMessages(WELCOME_MESSAGES);
-      }
-      
-      toast.success('Conversation deleted');
-      
-      // Refresh the conversation list
-      fetchConversations();
-    } catch (error) {
-      console.error('Error deleting conversation:', error);
-      toast.error('Failed to delete conversation');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Load a conversation
-  const loadConversation = (conversation: Conversation) => {
-    setCurrentConversation(conversation);
-    setMessages(conversation.messages);
-    setShowHistory(false);
-  };
-  
-  // Start a new conversation
-  const startNewConversation = () => {
-    setCurrentConversation(null);
-    setMessages(WELCOME_MESSAGES);
-    setShowHistory(false);
-  };
-  
-  // Auto-save when messages change
-  useEffect(() => {
-    // Only save if there's at least one user message
-    const hasUserMessages = messages.some(msg => msg.sender === 'user');
-    if (session?.user?.email && hasUserMessages && messages.length > 2) {
-      // Debounce saving to avoid too many API calls
-      const saveTimer = setTimeout(() => {
-        saveConversation();
-      }, 2000);
-      
-      return () => clearTimeout(saveTimer);
-    }
-  }, [messages]);
   
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -244,7 +136,7 @@ Counselor:`;
     
     // Add user message
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: uuidv4(), // Use uuid
       content: input.trim(),
       sender: 'user',
       timestamp: new Date()
@@ -262,13 +154,14 @@ Counselor:`;
       
       // Add counselor response
       const counselorMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: uuidv4(), // Use uuid
         content: responseText,
         sender: 'counselor',
         timestamp: new Date()
       }
       
       setMessages(prev => [...prev, counselorMessage])
+
     } catch (error) {
       console.error('Error in chat response:', error);
       toast.error('Sorry, I had trouble generating a response. Please try again.');
@@ -312,7 +205,6 @@ Counselor:`;
             <button
               onClick={() => setShowHistory(prev => !prev)}
               className="btn-secondary flex items-center"
-              disabled={isLoading}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -321,9 +213,12 @@ Counselor:`;
             </button>
             
             <button
-              onClick={startNewConversation}
+              onClick={() => {
+                setCurrentConversation(null);
+                setMessages(WELCOME_MESSAGES);
+                setShowHistory(false);
+              }}
               className="btn-primary flex items-center"
-              disabled={isLoading}
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -342,16 +237,11 @@ Counselor:`;
                 className="overflow-hidden"
               >
                 <div className="card bg-white rounded-lg shadow overflow-hidden">
-                  <h2 className="text-lg font-semibold p-4 border-b">Your Conversation History</h2>
+                  <h2 className="text-lg font-semibold p-4 border-b">Your Conversation History (Sample)</h2>
                   
-                  {isLoading ? (
-                    <div className="flex justify-center items-center p-8">
-                      <div className="loader"></div>
-                    </div>
-                  ) : conversations.length === 0 ? (
+                  {conversations.length === 0 ? (
                     <div className="p-6 text-center text-text-secondary">
-                      <p>You don't have any saved conversations yet.</p>
-                      <p className="text-sm mt-2">Start chatting with the counselor to save your first conversation!</p>
+                      <p>No sample conversations available.</p>
                     </div>
                   ) : (
                     <div className="max-h-60 overflow-y-auto">
@@ -366,7 +256,11 @@ Counselor:`;
                             </div>
                             <div className="flex space-x-2">
                               <button
-                                onClick={() => loadConversation(convo)}
+                                onClick={() => {
+                                  setCurrentConversation(convo);
+                                  setMessages(convo.messages);
+                                  setShowHistory(false);
+                                }}
                                 className="text-primary hover:text-primary-dark"
                                 title="Load conversation"
                               >
@@ -375,9 +269,15 @@ Counselor:`;
                                 </svg>
                               </button>
                               <button
-                                onClick={() => deleteConversation(convo.id!)}
+                                onClick={() => {
+                                  setConversations(prev => prev.filter(c => c.id !== convo.id));
+                                  if (currentConversation?.id === convo.id) {
+                                    setCurrentConversation(null);
+                                    setMessages(WELCOME_MESSAGES);
+                                  }
+                                }}
                                 className="text-red-500 hover:text-red-700"
-                                title="Delete conversation"
+                                title="Delete conversation (simulation)"
                               >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
