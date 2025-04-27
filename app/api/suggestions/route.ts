@@ -128,9 +128,9 @@ export async function POST(request: Request) {
 
     // Prepare the prompt for Gemini
     const prompt = `
-      You are an expert career and activity advisor. Your task is to provide personalized, actionable suggestions for students to develop their interests and build expertise.
+      You are a strict expert college and activity advisor. Your task is to provide personalized, actionable suggestions for students to develop their interests and build expertise.
       
-      Based on the following interests and current activities, suggest exactly 3 opportunities for growth and development.
+      Based on the following interests and current activities, suggest exactly 5 opportunities for growth and development.
       Focus on suggesting activities that can help develop a "spike" (deep expertise) in their areas of interest.
       
       Interests:
