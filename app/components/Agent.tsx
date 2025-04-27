@@ -23,6 +23,7 @@ interface AgentProps {
   userId: string;
   interviewId: string;
   feedbackId?: string | null;
+  type?: string;
   questions: string[];
 }
 
@@ -31,6 +32,7 @@ const Agent = ({
   userId,
   interviewId,
   feedbackId,
+  type,
   questions,
 }: AgentProps) => {
   const router = useRouter();
