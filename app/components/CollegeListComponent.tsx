@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import Papa from 'papaparse'
+// Import papaparse dynamically to avoid build issues
 import Select from 'react-select'
 
 type College = {
@@ -27,6 +27,9 @@ export default function CollegeListComponent() {
   useEffect(() => {
     const fetchColleges = async () => {
       try {
+        // Dynamically import papaparse
+        const Papa = (await import('papaparse')).default;
+        
         const response = await fetch('/data/us_universities.csv')
         const reader = response.body?.getReader()
         const result = await reader?.read()
