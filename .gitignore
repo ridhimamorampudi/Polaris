@@ -44,3 +44,6 @@ venv/
 # IDE specific files
 .vscode/
 .idea/ 
+
+package.json
+package-lock.json
