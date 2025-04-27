@@ -7,8 +7,19 @@ import { useEffect, useState } from 'react'
 
 export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [isClient, setIsClient] = useState(false);
   
   useEffect(() => {
+    // Set isClient to true once component mounts (client-side only)
+    setIsClient(true);
+    
+    // Set initial window size
+    setWindowSize({
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
+    
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({
         x: e.clientX / window.innerWidth,
@@ -16,9 +27,51 @@ export default function Home() {
       });
     };
     
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+    
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
+
+  // Generate the animated background elements only on the client side
+  const renderAnimatedElements = () => {
+    if (!isClient) return null;
+    
+    return [...Array(5)].map((_, i) => (
+      <motion.div
+        key={i}
+        className="absolute rounded-full bg-primary opacity-10"
+        initial={{ 
+          width: Math.random() * 300 + 100, 
+          height: Math.random() * 300 + 100,
+          x: Math.random() * windowSize.width, 
+          y: Math.random() * windowSize.height,
+          scale: 0.8
+        }}
+        animate={{ 
+          x: Math.random() * windowSize.width, 
+          y: Math.random() * windowSize.height,
+          scale: [0.8, 1.2, 0.8],
+          opacity: [0.1, 0.2, 0.1]
+        }}
+        transition={{ 
+          repeat: Infinity, 
+          duration: Math.random() * 20 + 15,
+          ease: "easeInOut"
+        }}
+      />
+    ));
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -31,32 +84,9 @@ export default function Home() {
         }}
       />
       
-      {/* Animated background elements */}
+      {/* Animated background elements - only rendered client-side */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full bg-primary opacity-10"
-            initial={{ 
-              width: Math.random() * 300 + 100, 
-              height: Math.random() * 300 + 100,
-              x: Math.random() * window.innerWidth, 
-              y: Math.random() * window.innerHeight,
-              scale: 0.8
-            }}
-            animate={{ 
-              x: Math.random() * window.innerWidth, 
-              y: Math.random() * window.innerHeight,
-              scale: [0.8, 1.2, 0.8],
-              opacity: [0.1, 0.2, 0.1]
-            }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: Math.random() * 20 + 15,
-              ease: "easeInOut"
-            }}
-          />
-        ))}
+        {isClient && renderAnimatedElements()}
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
