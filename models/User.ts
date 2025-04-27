@@ -1,5 +1,43 @@
 import mongoose from 'mongoose';
 
+// Message schema for conversations
+const MessageSchema = new mongoose.Schema({
+  content: {
+    type: String,
+    required: true,
+  },
+  sender: {
+    type: String,
+    enum: ['user', 'assistant'],
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Embedded conversation schema
+const ConversationSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
+  messages: [MessageSchema],
+  isActive: {
+    type: Boolean,
+    default: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -30,6 +68,8 @@ const UserSchema = new mongoose.Schema({
     primaryMajor: String,
     backupMajor: String,
   },
+  // Add conversations field to store user's conversations
+  conversations: [ConversationSchema],
 }, {
   timestamps: true,
 });
