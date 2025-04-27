@@ -85,7 +85,7 @@ export default function InterviewFeedbackPage({ params }: { params: { id: string
     
     // Simulated analysis
     const mockAnalysis: FeedbackAnalysis = {
-      overallScore: Math.floor(70 + Math.random() * 25), // Random score between 70-95
+      overallScore: 0, // This will be calculated as the average of question scores
       strengths: [
         'Good communication skills and clarity in responses',
         'Demonstrated technical knowledge in key areas',
@@ -109,11 +109,18 @@ export default function InterviewFeedbackPage({ params }: { params: { id: string
     };
     
     // Generate feedback for each question
+    let totalScore = 0;
+    let questionCount = 0;
+    
     questions.forEach((question, index) => {
       const response = userResponses[index] || '';
       const wordCount = response.split(' ').length;
       
-      let score = 60 + Math.floor(Math.random() * 30); // Random score between 60-90
+      // Deterministic score based on question index and word count
+      // Use a consistent algorithm instead of random numbers
+      let score = 70 + (wordCount % 3) * 5 + (index % 4) * 2;
+      // Constrain between 60-95
+      score = Math.max(60, Math.min(95, score));
       
       // Adjust score based on response length (simplistic approach)
       if (wordCount < 20) score = Math.max(50, score - 15);
@@ -123,7 +130,15 @@ export default function InterviewFeedbackPage({ params }: { params: { id: string
         score,
         feedback: getRandomFeedback(score)
       };
+      
+      totalScore += score;
+      questionCount++;
     });
+    
+    // Calculate the overall score as the average of all question scores
+    if (questionCount > 0) {
+      mockAnalysis.overallScore = Math.round(totalScore / questionCount);
+    }
     
     setAnalysis(mockAnalysis);
   };
