@@ -17,6 +17,26 @@ const MessageSchema = new mongoose.Schema({
   },
 });
 
+// College schema for user's college list
+const CollegeSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true
+  },
+  category: {
+    type: String,
+    enum: ['Reach', 'Match', 'Safety'],
+    required: true
+  },
+  applicationStatus: {
+    type: String, 
+    enum: ['Planning', 'In Progress', 'Submitted', 'Accepted', 'Rejected', 'Waitlisted'],
+    default: 'Planning'
+  },
+  notes: String,
+  deadline: Date
+});
+
 // Embedded conversation schema
 const ConversationSchema = new mongoose.Schema({
   title: {
@@ -68,6 +88,8 @@ const UserSchema = new mongoose.Schema({
     primaryMajor: String,
     backupMajor: String,
   },
+  // College list
+  collegeList: [CollegeSchema],
   // Add conversations field to store user's conversations
   conversations: [ConversationSchema],
 }, {

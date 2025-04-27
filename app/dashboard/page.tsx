@@ -1,11 +1,106 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { FiMic, FiPlus } from 'react-icons/fi'
+import { useSession } from 'next-auth/react'
+import toast from 'react-hot-toast'
+
+interface Profile {
+  gpa: number;
+  satAct: number;
+  apCourses: string[];
+  activities: string[];
+  interests: string[];
+  primaryMajor: string;
+  backupMajor: string;
+}
+
+interface College {
+  _id: string;
+  name: string;
+  category: 'Reach' | 'Match' | 'Safety';
+  applicationStatus: string;
+}
+
+interface Interview {
+  _id: string;
+  topic: string;
+  type: string;
+  createdAt: string;
+}
 
 export default function Dashboard() {
+  const { data: session } = useSession()
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [colleges, setColleges] = useState<College[]>([])
+  const [interviews, setInterviews] = useState<Interview[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (session?.user) {
+      Promise.all([
+        fetchProfile(),
+        fetchColleges(),
+        fetchInterviews()
+      ]).finally(() => {
+        setLoading(false)
+      })
+    }
+  }, [session])
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch('/api/profile')
+      if (!res.ok) throw new Error('Failed to fetch profile')
+      const profileData = await res.json()
+      setProfile(profileData)
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      toast.error('Failed to load profile data')
+    }
+  }
+
+  const fetchColleges = async () => {
+    try {
+      const res = await fetch('/api/colleges')
+      if (!res.ok) throw new Error('Failed to fetch colleges')
+      const { collegeList } = await res.json()
+      setColleges(collegeList || [])
+    } catch (error) {
+      console.error('Error fetching colleges:', error)
+      toast.error('Failed to load college list')
+    }
+  }
+
+  const fetchInterviews = async () => {
+    try {
+      const res = await fetch(`/api/interviews?userId=${session?.user?.id}`)
+      if (!res.ok) throw new Error('Failed to fetch interviews')
+      const { interviews } = await res.json()
+      setInterviews(interviews || [])
+    } catch (error) {
+      console.error('Error fetching interviews:', error)
+      toast.error('Failed to load interviews')
+    }
+  }
+
+  // Count colleges by category
+  const collegesByCategory = {
+    Reach: colleges.filter(c => c.category === 'Reach').length,
+    Match: colleges.filter(c => c.category === 'Match').length,
+    Safety: colleges.filter(c => c.category === 'Safety').length
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,12 +137,25 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-text-secondary">GPA:</span>
-                    <span className="font-medium text-text-primary">N/A</span>
+                    <span className="font-medium text-text-primary">
+                      {profile?.gpa ? profile.gpa.toFixed(2) : 'N/A'}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-text-secondary">SAT:</span>
-                    <span className="font-medium text-text-primary">N/A</span>
+                    <span className="text-text-secondary">SAT/ACT:</span>
+                    <span className="font-medium text-text-primary">
+                      {profile?.satAct || 'N/A'}
+                    </span>
                   </div>
+                  {profile?.activities && profile.activities.length > 0 && (
+                    <div className="mt-2">
+                      <span className="text-sm text-text-secondary">Top activities: </span>
+                      <span className="text-sm font-medium text-text-primary">
+                        {profile.activities.slice(0, 2).join(', ')}
+                        {profile.activities.length > 2 ? '...' : ''}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <Link 
                   href="/profile"
@@ -81,16 +189,37 @@ export default function Dashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">Reach:</span>
-                    <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">0</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                      {collegesByCategory.Reach}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">Match:</span>
-                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">0</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                      {collegesByCategory.Match}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-text-secondary">Safety:</span>
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">0</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                      {collegesByCategory.Safety}
+                    </span>
                   </div>
+                  {colleges.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <span className="text-sm text-text-secondary">Recently added: </span>
+                      <div className="mt-1">
+                        {colleges.slice(-2).map((college, i) => (
+                          <div key={college._id || i} className="text-sm">
+                            {college.name}
+                            <span className="ml-2 inline-block px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+                              {college.category}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <Link 
                   href="/colleges"
@@ -121,13 +250,26 @@ export default function Dashboard() {
                 </p>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-text-secondary">Active Interviews:</span>
-                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">0</span>
+                    <span className="text-sm text-text-secondary">Total Interviews:</span>
+                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                      {interviews.length}
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-text-secondary">Completed:</span>
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">0</span>
-                  </div>
+                  {interviews.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <span className="text-sm text-text-secondary">Recent interviews: </span>
+                      <div className="mt-1">
+                        {interviews.slice(0, 2).map((interview, i) => (
+                          <div key={interview._id || i} className="text-sm mb-1">
+                            {interview.topic}
+                            <span className="ml-2 inline-block px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+                              {new Date(interview.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-4">
                   <Link 
@@ -171,11 +313,15 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">Primary:</span>
-                  <span className="font-medium text-text-primary">N/A</span>
+                  <span className="font-medium text-text-primary">
+                    {profile?.primaryMajor || 'N/A'}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-text-secondary">Backup:</span>
-                  <span className="font-medium text-text-primary">N/A</span>
+                  <span className="font-medium text-text-primary">
+                    {profile?.backupMajor || 'N/A'}
+                  </span>
                 </div>
               </div>
               <Link 

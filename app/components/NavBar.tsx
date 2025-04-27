@@ -40,6 +40,7 @@ export default function NavBar() {
                 <Link href="/profile" className="text-text-secondary hover:text-text-primary">Profile</Link>
                 <Link href="/major" className="text-text-secondary hover:text-text-primary">Major</Link>
                 <Link href="/activities" className="text-text-secondary hover:text-text-primary">Activities</Link>
+                <Link href="/interviews" className="text-text-secondary hover:text-text-primary">Interviews</Link>
                 <Link href="/essay" className="text-text-secondary hover:text-text-primary">Essay</Link>
                 <Link href="/counselor" className="text-text-secondary hover:text-text-primary">Counselor</Link>
                 <Link href="/resume" className="text-text-secondary hover:text-text-primary">Resume</Link>
