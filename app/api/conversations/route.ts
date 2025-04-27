@@ -5,6 +5,9 @@ import User from '@/models/User';
 import { authOptions } from '@/app/lib/auth';
 import mongoose from 'mongoose';
 
+// Add dynamic export at the top of the file
+export const dynamic = 'force-dynamic';
+
 // Helper function to ensure ObjectId is properly formatted
 function ensureObjectId(id: string | mongoose.Types.ObjectId): mongoose.Types.ObjectId {
   if (typeof id === 'string') {

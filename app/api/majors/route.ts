@@ -4,6 +4,9 @@ import { authOptions } from '@/app/lib/auth'
 import User from '@/models/User'
 import connectDB from '@/lib/mongodb'
 
+// Add dynamic export at the top of the file
+export const dynamic = 'force-dynamic';
+
 // Get user's majors
 export async function GET() {
   try {

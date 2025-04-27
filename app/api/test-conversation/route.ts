@@ -5,6 +5,9 @@ import User from '@/models/User';
 import { authOptions } from '@/app/lib/auth';
 import mongoose from 'mongoose';
 
+// Mark this route as dynamic to prevent static generation on Vercel
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
