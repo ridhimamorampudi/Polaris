@@ -6,6 +6,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { apCourses } from '../data/apCourses'
 import { useSession } from 'next-auth/react'
+import CollegeListComponent from '../components/CollegeListComponent'
 
 export default function ProfileSetup() {
   const { data: session } = useSession()
@@ -317,27 +318,25 @@ export default function ProfileSetup() {
         </div>
       </div>
     )
-  }
+  } else if (isEditing) {
+    return (
+      <div className="min-h-screen bg-background py-12">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold text-text-primary">Your Profile</h1>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="btn-secondary"
+              >
+                {isEditing ? 'Cancel' : 'Edit Profile'}
+              </button>
+            </div>
 
-  return (
-    <div className="min-h-screen bg-background py-12">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="card"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-text-primary">Your Profile</h1>
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className="btn-secondary"
-            >
-              {isEditing ? 'Cancel' : 'Edit Profile'}
-            </button>
-          </div>
-
-          {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div>
@@ -473,67 +472,106 @@ export default function ProfileSetup() {
                 Save Changes
               </button>
             </form>
-          ) : (
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-text-secondary">Full Name</h3>
-                  <p className="text-lg">{formData.name}</p>
+          </motion.div>
+        </div>
+      </div>
+    )
+  } else {
+    return (
+      <div className="min-h-screen bg-background py-12">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-8"
+          >
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-text-primary">My Profile</h1>
+              <p className="mt-2 text-text-secondary">
+                Review and manage your profile information
+              </p>
+            </div>
+
+            <div className="card">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Profile Information</h2>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="btn-primary-outline"
+                >
+                  Edit Profile
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="text-sm font-medium text-text-secondary">Full Name</h3>
+                    <p className="mt-1 text-text-primary">{formData.name}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-text-secondary">GPA</h3>
+                    <p className="mt-1 text-text-primary">{formData.gpa}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-text-secondary">SAT/ACT Score</h3>
+                    <p className="mt-1 text-text-primary">{formData.satAct || 'Not provided'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-text-secondary">GPA</h3>
-                  <p className="text-lg">{formData.gpa}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-text-secondary">SAT/ACT Score</h3>
-                  <p className="text-lg">{formData.satAct || 'Not provided'}</p>
-                </div>
+
                 <div>
                   <h3 className="text-sm font-medium text-text-secondary">AP Courses</h3>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {formData.apCourses.length > 0 ? (
-                      formData.apCourses.map((course, index) => (
-                        <span key={index} className="tag">{course}</span>
-                      ))
-                    ) : (
-                      <p className="text-text-secondary">No AP courses selected</p>
-                    )}
-                  </div>
+                  {formData.apCourses.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {formData.apCourses.map((course) => (
+                        <span key={course} className="tag">
+                          {course}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-text-secondary">No AP courses selected</p>
+                  )}
                 </div>
+
                 <div>
                   <h3 className="text-sm font-medium text-text-secondary">Activities</h3>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {formData.activities.length > 0 ? (
-                      formData.activities.map((activity, index) => (
-                        <span key={index} className="tag">{activity}</span>
-                      ))
-                    ) : (
-                      <p className="text-text-secondary">No activities added</p>
-                    )}
-                  </div>
+                  {formData.activities.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {formData.activities.map((activity, index) => (
+                        <span key={index} className="tag">
+                          {activity}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-text-secondary">No activities added</p>
+                  )}
                 </div>
+
                 <div>
                   <h3 className="text-sm font-medium text-text-secondary">Interests</h3>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {formData.interests.length > 0 ? (
-                      formData.interests.map((interest, index) => (
-                        <span key={index} className="tag">{interest}</span>
-                      ))
-                    ) : (
-                      <p className="text-text-secondary">No interests added</p>
-                    )}
-                  </div>
+                  {formData.interests.length > 0 ? (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {formData.interests.map((interest, index) => (
+                        <span key={index} className="tag">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-text-secondary">No interests added</p>
+                  )}
                 </div>
               </div>
-              <div className="flex justify-between">
-                <Link href="/major" className="btn-primary">
-                  Go to Major Selection
-                </Link>
-              </div>
             </div>
-          )}
-        </motion.div>
+
+            {/* College List Component */}
+            <CollegeListComponent />
+            
+          </motion.div>
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 } 
