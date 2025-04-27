@@ -4,6 +4,10 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  experimental: {
+    // Disable static optimization for API routes
+    serverComponentsExternalPackages: ['mongoose']
+  },
 }
 
 module.exports = nextConfig 

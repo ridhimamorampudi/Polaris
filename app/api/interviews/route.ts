@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Interview from '@/models/Interview';
 
-// Mark this route as dynamic to prevent static generation on Vercel
+// Tell Next.js this route should be dynamically rendered
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +15,12 @@ export async function GET(request: Request) {
     if (!userId) {
       return NextResponse.json(
         { error: 'User ID is required' },
-        { status: 400 }
+        { 
+          status: 400,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          }
+        }
       );
     }
 
@@ -23,12 +30,24 @@ export async function GET(request: Request) {
       .sort({ createdAt: -1 })
       .lean();
 
-    return NextResponse.json({ interviews });
+    return NextResponse.json(
+      { interviews },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        }
+      }
+    );
   } catch (error) {
     console.error('Error fetching interviews:', error);
     return NextResponse.json(
       { error: 'Failed to fetch interviews' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        }
+      }
     );
   }
 } 

@@ -5,15 +5,25 @@ import User from '@/models/User';
 import { authOptions } from '@/app/lib/auth';
 import mongoose from 'mongoose';
 
-// Mark this route as dynamic to prevent static generation on Vercel
+// Tell Next.js this route should be dynamically rendered
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized' }, 
+        { 
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, max-age=0',
+          }  
+        }
+      );
     }
 
     await connectDB();
@@ -79,7 +89,11 @@ export async function GET() {
         isActive: c.isActive,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt
-      }))
+      })),
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      }
     });
     
   } catch (error) {
