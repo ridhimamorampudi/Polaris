@@ -1,4 +1,3 @@
-
 import connectDB from "@/lib/mongodb";
 import Interview from "@/models/Interview"; // <-- import your model
 import { generateText } from "ai";
@@ -64,4 +63,5 @@ export async function POST(request: Request) {
         error: error?.message || "Unknown error"
       }, { status: 500 });  
     }
-  }  
+  }
+}
