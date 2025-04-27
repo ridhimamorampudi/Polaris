@@ -38,21 +38,20 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { name, gpa, satAct, apCourses, activities, interests } = body
+    const { name, gpa, satAct, apCourses } = body
 
     await connectDB()
     
-    // Update user's profile
+    // Update user's profile and name
     const user = await User.findOneAndUpdate(
       { email: session.user.email },
       { 
-        name,
+        name, // Update the user's name at the root level
         profile: {
           gpa: parseFloat(gpa),
           satAct: satAct ? parseInt(satAct) : null,
           apCourses,
-          activities,
-          interests,
+          // Remove activities and interests
         }
       },
       { new: true }
@@ -62,7 +61,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json(user.profile)
+    return NextResponse.json({ 
+      ...user.profile, 
+      name: user.name // Include the name from user object
+    })
   } catch (error) {
     console.error('Error saving profile:', error)
     return NextResponse.json(

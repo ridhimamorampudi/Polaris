@@ -17,12 +17,10 @@ export default function ProfileSetup() {
     gpa: '',
     satAct: '',
     apCourses: [] as string[],
-    activities: [] as string[],
-    interests: [] as string[],
   })
 
   const [step, setStep] = React.useState(1)
-  const totalSteps = 5
+  const totalSteps = 3
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -32,12 +30,10 @@ export default function ProfileSetup() {
           const data = await response.json()
           if (data) {
             setFormData({
-              name: data.name,
-              gpa: data.gpa.toString(),
+              name: session?.user?.name || '',
+              gpa: data.gpa?.toString() || '',
               satAct: data.satAct?.toString() || '',
-              apCourses: data.apCourses,
-              activities: data.activities,
-              interests: data.interests,
+              apCourses: data.apCourses || [],
             })
             setIsFirstTime(false)
           }
@@ -57,28 +53,12 @@ export default function ProfileSetup() {
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleTagInput = (field: 'activities' | 'interests', value: string) => {
-    if (value.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: [...prev[field], value.trim()]
-      }))
-    }
-  }
-
   const handleAPCourseSelect = (course: string) => {
     setFormData(prev => ({
       ...prev,
       apCourses: prev.apCourses.includes(course)
         ? prev.apCourses.filter(c => c !== course)
         : [...prev.apCourses, course]
-    }))
-  }
-
-  const removeTag = (field: 'activities' | 'interests', index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
     }))
   }
 
@@ -101,7 +81,7 @@ export default function ProfileSetup() {
           setIsFirstTime(false)
           setIsEditing(false)
           if (isFirstTime) {
-            window.location.href = '/major'
+            window.location.href = '/dashboard'
           }
         } else {
           throw new Error('Failed to save profile')
@@ -221,84 +201,6 @@ export default function ProfileSetup() {
                 </div>
               )}
 
-              {step === 4 && (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-text-primary">Activities</h2>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      Add Activities
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder="Type and press Enter"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleTagInput('activities', (e.target as HTMLInputElement).value)
-                            ;(e.target as HTMLInputElement).value = ''
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.activities.map((activity, index) => (
-                        <span key={index} className="tag">
-                          {activity}
-                          <button
-                            type="button"
-                            onClick={() => removeTag('activities', index)}
-                            className="ml-2 text-text-secondary hover:text-text-primary"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {step === 5 && (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-text-primary">Interests</h2>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-text-secondary">
-                      Add Interests
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        className="input-field"
-                        placeholder="Type and press Enter"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            handleTagInput('interests', (e.target as HTMLInputElement).value)
-                            ;(e.target as HTMLInputElement).value = ''
-                          }
-                        }}
-                      />
-                    </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.interests.map((interest, index) => (
-                        <span key={index} className="tag">
-                          {interest}
-                          <button
-                            type="button"
-                            onClick={() => removeTag('interests', index)}
-                            className="ml-2 text-text-secondary hover:text-text-primary"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <div className="flex justify-between">
                 {step > 1 && (
                   <button
@@ -401,72 +303,6 @@ export default function ProfileSetup() {
                     ))}
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary">
-                    Activities
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="Type and press Enter"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleTagInput('activities', (e.target as HTMLInputElement).value)
-                          ;(e.target as HTMLInputElement).value = ''
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {formData.activities.map((activity, index) => (
-                      <span key={index} className="tag">
-                        {activity}
-                        <button
-                          type="button"
-                          onClick={() => removeTag('activities', index)}
-                          className="ml-2 text-text-secondary hover:text-text-primary"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text-secondary">
-                    Interests
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="Type and press Enter"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleTagInput('interests', (e.target as HTMLInputElement).value)
-                          ;(e.target as HTMLInputElement).value = ''
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {formData.interests.map((interest, index) => (
-                      <span key={index} className="tag">
-                        {interest}
-                        <button
-                          type="button"
-                          onClick={() => removeTag('interests', index)}
-                          className="ml-2 text-text-secondary hover:text-text-primary"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
               <button type="submit" className="btn-primary">
                 Save Changes
@@ -531,36 +367,6 @@ export default function ProfileSetup() {
                     </div>
                   ) : (
                     <p className="mt-1 text-text-secondary">No AP courses selected</p>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-text-secondary">Activities</h3>
-                  {formData.activities.length > 0 ? (
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {formData.activities.map((activity, index) => (
-                        <span key={index} className="tag">
-                          {activity}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-text-secondary">No activities added</p>
-                  )}
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-text-secondary">Interests</h3>
-                  {formData.interests.length > 0 ? (
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {formData.interests.map((interest, index) => (
-                        <span key={index} className="tag">
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="mt-1 text-text-secondary">No interests added</p>
                   )}
                 </div>
               </div>
