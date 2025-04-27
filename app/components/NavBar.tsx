@@ -10,7 +10,6 @@ export default function NavBar() {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
-  const isPublicPage = pathname === '/' || pathname === '/auth'
 
   const handleSignOut = async () => {
     try {
@@ -50,14 +49,14 @@ export default function NavBar() {
                   Sign Out
                 </button>
               </>
-            ) : !isPublicPage ? (
+            ) : (
               <Link 
                 href="/auth" 
                 className="btn-primary"
               >
                 Sign In
               </Link>
-            ) : null}
+            )}
           </div>
         </div>
       </div>
