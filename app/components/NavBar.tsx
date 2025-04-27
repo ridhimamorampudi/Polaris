@@ -3,12 +3,25 @@
 import React from 'react'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 export default function NavBar() {
   const { data: session, status } = useSession()
   const pathname = usePathname()
+  const router = useRouter()
   const isPublicPage = pathname === '/' || pathname === '/auth'
+
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false })
+      toast.success('Signed out successfully')
+      router.push('/')
+    } catch (error) {
+      toast.error('Error signing out')
+      console.error('Sign out error:', error)
+    }
+  }
 
   if (status === 'loading') {
     return null // or a loading spinner
@@ -31,7 +44,7 @@ export default function NavBar() {
                 <Link href="/activities" className="text-text-secondary hover:text-text-primary">Activities</Link>
                 <Link href="/essay" className="text-text-secondary hover:text-text-primary">Essay</Link>
                 <button 
-                  onClick={() => signOut({ callbackUrl: '/' })}
+                  onClick={handleSignOut}
                   className="text-text-secondary hover:text-text-primary"
                 >
                   Sign Out
