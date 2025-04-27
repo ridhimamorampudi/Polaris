@@ -1,20 +1,16 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
+import { useSession, signOut } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
 
 export default function NavBar() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: session, status } = useSession()
+  const pathname = usePathname()
+  const isPublicPage = pathname === '/' || pathname === '/auth'
 
-  useEffect(() => {
-    // Check if user is on auth page or home page
-    const isPublicPage = window.location.pathname === '/' || window.location.pathname === '/auth'
-    setIsAuthenticated(!isPublicPage)
-    setIsLoading(false)
-  }, [])
-
-  if (isLoading) {
+  if (status === 'loading') {
     return null // or a loading spinner
   }
 
@@ -26,7 +22,7 @@ export default function NavBar() {
             <Link href="/" className="text-2xl font-bold text-primary">Polaris</Link>
           </div>
           <div className="hidden sm:flex sm:items-center sm:space-x-8">
-            {isAuthenticated ? (
+            {session ? (
               <>
                 <Link href="/dashboard" className="text-text-secondary hover:text-text-primary">Dashboard</Link>
                 <Link href="/profile" className="text-text-secondary hover:text-text-primary">Profile</Link>
@@ -35,23 +31,20 @@ export default function NavBar() {
                 <Link href="/activities" className="text-text-secondary hover:text-text-primary">Activities</Link>
                 <Link href="/essay" className="text-text-secondary hover:text-text-primary">Essay</Link>
                 <button 
-                  onClick={() => {
-                    // Handle logout
-                    window.location.href = '/'
-                  }}
+                  onClick={() => signOut({ callbackUrl: '/' })}
                   className="text-text-secondary hover:text-text-primary"
                 >
                   Sign Out
                 </button>
               </>
-            ) : (
+            ) : !isPublicPage ? (
               <Link 
                 href="/auth" 
                 className="btn-primary"
               >
                 Sign In
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
