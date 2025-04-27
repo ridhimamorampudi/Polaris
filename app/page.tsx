@@ -154,70 +154,90 @@ export default function Home() {
       </div>
       
       {/* Features Section */}
-      <div className="relative bg-white py-24">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.h2 
-            className="text-3xl sm:text-5xl font-bold text-text-primary mb-16 text-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-          >
-            Everything you need to succeed
-          </motion.h2>
+      <div className="relative bg-gradient-to-b from-indigo-50 to-purple-50 py-32">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-20">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              Everything you need to succeed
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto"></div>
+            <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
+              Our comprehensive suite of tools helps you navigate every step of your college journey.
+            </p>
+          </div>
           
-          <div className="space-y-12">
+          <div className="space-y-8">
             {[
               {
                 title: "Profile Building",
-                description: "Create a comprehensive academic profile highlighting your strengths.",
+                description: "Create a comprehensive academic profile highlighting your strengths and achievements that stand out to admissions officers.",
                 icon: (
-                  <svg className="w-12 h-12 text-primary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
+                  <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
                 )
               },
               {
                 title: "College Matching",
-                description: "Get personalized college recommendations based on your profile.",
+                description: "Get personalized college recommendations based on your academic profile, preferences, and career aspirations.",
                 icon: (
-                  <svg className="w-12 h-12 text-primary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
+                  <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
                 )
               },
               {
                 title: "Mock Interviews",
-                description: "Practice with AI-powered mock interviews and receive detailed feedback to improve your performance.",
+                description: "Practice with AI-powered mock interviews and receive detailed feedback to improve your performance and build confidence.",
                 icon: (
-                  <svg className="w-12 h-12 text-primary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                  </svg>
+                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                    </svg>
+                  </div>
                 )
               },
               {
                 title: "Essay Review",
-                description: "Receive detailed feedback on your college essays from AI.",
+                description: "Receive detailed feedback on your college essays from AI to improve clarity, structure, and impact for admissions committees.",
                 icon: (
-                  <svg className="w-12 h-12 text-primary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
+                  <div className="w-16 h-16 rounded-full bg-pink-100 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
                 )
               }
             ].map((feature, index) => (
-              <motion.div 
+              <div 
                 key={index}
-                className="card p-8 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
-                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true, margin: "-100px" }}
-                whileHover={{ scale: 1.03 }}
+                className="card p-8 bg-white shadow-md hover:shadow-lg transition-shadow duration-300 rounded-lg flex flex-col md:flex-row items-start"
               >
-                {feature.icon}
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-text-secondary">{feature.description}</p>
-              </motion.div>
+                <div className="mr-6 mb-4 md:mb-0 flex-shrink-0">
+                  {feature.icon}
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900">{feature.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                </div>
+              </div>
             ))}
+          </div>
+          
+          <div className="mt-20 text-center">
+            <Link
+              href="/auth"
+              className="inline-flex items-center justify-center px-8 py-3 text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150 ease-in-out shadow-sm"
+            >
+              <span>Start Your Journey</span>
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
           </div>
         </div>
       </div>
