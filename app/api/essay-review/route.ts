@@ -3,7 +3,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Log the environment variable right before use
 console.log("SERVER_LOG: GOOGLE_API_KEY value:", process.env.GOOGLE_API_KEY ? 'Exists' : 'MISSING or empty');
-
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '');
 
 export async function POST(request: Request) {
