@@ -74,28 +74,24 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Interactive gradient background */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-10"
-        style={{
-          backgroundPosition: `${mousePosition.x * 100}% ${mousePosition.y * 100}%`,
-          transition: 'background-position 0.2s ease-out'
-        }}
-      />
-      
-      {/* Animated background elements - only rendered client-side */}
-      <div className="absolute inset-0 overflow-hidden">
-        {isClient && renderAnimatedElements()}
-      </div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
-        >
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Hero Section with Fixed Height */}
+      <div className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Interactive gradient background */}
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-10"
+          style={{
+            backgroundPosition: `${mousePosition.x * 100}% ${mousePosition.y * 100}%`,
+            transition: 'background-position 0.2s ease-out'
+          }}
+        />
+        
+        {/* Animated background elements - only rendered client-side */}
+        <div className="absolute inset-0 overflow-hidden">
+          {isClient && renderAnimatedElements()}
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
           <motion.h1 
             className="text-5xl sm:text-7xl font-bold text-text-primary mb-6 font-display tracking-tight"
             initial={{ opacity: 0, y: -20 }}
@@ -142,8 +138,34 @@ export default function Home() {
               </svg>
             </Link>
           </motion.div>
-
-          <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
+          
+          {/* Scroll indicator */}
+          <motion.div 
+            className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, y: [0, 10, 0] }}
+            transition={{ delay: 1.5, duration: 2, repeat: Infinity }}
+          >
+            <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </motion.div>
+        </div>
+      </div>
+      
+      {/* Features Section */}
+      <div className="relative bg-white py-24">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2 
+            className="text-3xl sm:text-5xl font-bold text-text-primary mb-16 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            Everything you need to succeed
+          </motion.h2>
+          
+          <div className="space-y-12">
             {[
               {
                 title: "Profile Building",
@@ -164,6 +186,15 @@ export default function Home() {
                 )
               },
               {
+                title: "Mock Interviews",
+                description: "Practice with AI-powered mock interviews and receive detailed feedback to improve your performance.",
+                icon: (
+                  <svg className="w-12 h-12 text-primary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+                  </svg>
+                )
+              },
+              {
                 title: "Essay Review",
                 description: "Receive detailed feedback on your college essays from AI.",
                 icon: (
@@ -176,10 +207,11 @@ export default function Home() {
               <motion.div 
                 key={index}
                 className="card p-8 bg-white/90 backdrop-blur-sm hover:shadow-xl transition-all duration-300 border border-gray-100"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1 + index * 0.2, duration: 0.8 }}
-                whileHover={{ y: -5 }}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: true, margin: "-100px" }}
+                whileHover={{ scale: 1.03 }}
               >
                 {feature.icon}
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
@@ -187,7 +219,7 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
