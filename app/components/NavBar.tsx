@@ -42,6 +42,7 @@ export default function NavBar() {
                 <Link href="/major" className="text-text-secondary hover:text-text-primary">Major</Link>
                 <Link href="/activities" className="text-text-secondary hover:text-text-primary">Activities</Link>
                 <Link href="/essay" className="text-text-secondary hover:text-text-primary">Essay</Link>
+                <Link href="/counselor" className="text-text-secondary hover:text-text-primary">Counselor</Link>
                 <button 
                   onClick={handleSignOut}
                   className="text-text-secondary hover:text-text-primary"
