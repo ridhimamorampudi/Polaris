@@ -63,5 +63,4 @@ export async function POST(request: Request) {
         error: error?.message || "Unknown error"
       }, { status: 500 });  
     }
-  }
 }

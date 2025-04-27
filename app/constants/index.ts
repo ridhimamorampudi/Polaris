@@ -1,0 +1,1 @@
+export const interviewer = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID || 'your-workflow-id'; 
