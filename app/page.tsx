@@ -87,27 +87,10 @@ export default function Home() {
             Build your profile, plan your activities, get essay feedback — all in one place.
           </motion.p>
           
-          <motion.div 
-            className="relative w-full max-w-4xl mx-auto mb-16"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.7, duration: 0.8 }}
-          >
-            <Image
-              src="/college-illustration.svg"
-              alt="College Journey Illustration"
-              width={800}
-              height={400}
-              className="w-full h-auto drop-shadow-xl"
-            />
-            {/* Decorative element */}
-            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-3/4 h-12 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-xl rounded-full" />
-          </motion.div>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.8 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
           >
             <Link 
               href="/auth"

@@ -31,7 +31,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href={session ? "/dashboard" : "/"} className="text-2xl font-bold text-primary">Polaris</Link>
+            <Link href={session ? "/dashboard" : "/"} className="text-2xl font-bold text-primary">PolarisAI</Link>
           </div>
           <div className="hidden sm:flex sm:items-center sm:space-x-8">
             {session ? (
