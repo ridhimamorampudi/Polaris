@@ -17,7 +17,7 @@ export default function NewInterviewPage() {
     type: 'technical',
     level: 'entry',
     knowledge: '',
-    amount: '5',
+    amount: '3',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,18 +153,21 @@ export default function NewInterviewPage() {
 
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Number of Questions
+                  Number of Questions (1-5)
                 </label>
-                <select
+                <input
+                  type="number"
                   name="amount"
                   value={formData.amount}
                   onChange={handleChange}
+                  min="1"
+                  max="5"
                   className="input-field w-full"
-                >
-                  <option value="5">5 Questions</option>
-                  <option value="10">10 Questions</option>
-                  <option value="15">15 Questions</option>
-                </select>
+                  placeholder="1-5 questions"
+                />
+                <p className="mt-1 text-xs text-text-secondary">
+                  Select between 1 and 5 questions for your interview
+                </p>
               </div>
 
               <div className="flex justify-end gap-4">

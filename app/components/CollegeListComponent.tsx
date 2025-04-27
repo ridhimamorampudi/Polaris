@@ -5,11 +5,16 @@ import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 // Import papaparse dynamically to avoid build issues
 import Select from 'react-select'
+import { useSession } from 'next-auth/react'
 
 type College = {
-  id: string
+  _id?: string
+  id?: string
   name: string
   category: 'Reach' | 'Match' | 'Safety'
+  applicationStatus?: string
+  notes?: string
+  deadline?: string
 }
 
 type CollegeOption = {
@@ -18,20 +23,33 @@ type CollegeOption = {
 }
 
 export default function CollegeListComponent() {
-  const [colleges, setColleges] = React.useState<College[]>([])
+  const { data: session } = useSession()
+  const [colleges, setColleges] = useState<College[]>([])
   const [allColleges, setAllColleges] = useState<CollegeOption[]>([])
   const [selectedCollege, setSelectedCollege] = useState<CollegeOption | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = React.useState<College['category']>('Match')
+  const [isSaving, setIsSaving] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<College['category']>('Match')
 
+  // Fetch both user's college list and the list of all colleges
   useEffect(() => {
-    const fetchColleges = async () => {
+    const fetchCollegeData = async () => {
+      setIsLoading(true)
+      
       try {
-        // Dynamically import papaparse
-        const Papa = (await import('papaparse')).default;
+        // Fetch user's saved college list from the database
+        const userCollegesResponse = await fetch('/api/colleges')
+        if (userCollegesResponse.ok) {
+          const data = await userCollegesResponse.json()
+          setColleges(data.collegeList || [])
+        } else {
+          console.error('Failed to fetch user college list')
+        }
         
-        const response = await fetch('/data/us_universities.csv')
-        const reader = response.body?.getReader()
+        // Fetch all available colleges from CSV
+        const Papa = (await import('papaparse')).default
+        const csvResponse = await fetch('/data/us_universities.csv')
+        const reader = csvResponse.body?.getReader()
         const result = await reader?.read()
         const decoder = new TextDecoder('utf-8')
         const csv = decoder.decode(result?.value)
@@ -43,47 +61,109 @@ export default function CollegeListComponent() {
             const collegeNames = results.data
               .map((row: any) => row['name']?.trim())
               .filter(Boolean)
-              .sort();
-            setAllColleges(collegeNames.map(name => ({ value: name, label: name })));
-            setIsLoading(false);
+              .sort()
+            setAllColleges(collegeNames.map(name => ({ value: name, label: name })))
           },
           error: (error: any) => {
-            console.error('Error parsing CSV:', error);
-            toast.error('Failed to load college list.');
-            setIsLoading(false);
+            console.error('Error parsing CSV:', error)
+            toast.error('Failed to load college options.')
           }
-        });
+        })
       } catch (error: any) {
-        console.error('Error fetching college data:', error);
-        toast.error('Failed to fetch college data.');
-        setIsLoading(false);
+        console.error('Error fetching data:', error)
+        toast.error('Failed to load college data.')
+      } finally {
+        setIsLoading(false)
       }
     }
 
-    fetchColleges()
-  }, [])
+    if (session) {
+      fetchCollegeData()
+    }
+  }, [session])
 
-  const handleAddCollege = (e: React.FormEvent) => {
+  const handleAddCollege = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedCollege) {
       toast.error('Please select a college.')
       return
     }
 
-    const newCollege: College = {
-      id: Date.now().toString(),
-      name: selectedCollege.value,
-      category: selectedCategory,
+    if (!session) {
+      toast.error('You must be signed in to save colleges')
+      return
     }
 
-    setColleges(prev => [...prev, newCollege])
-    setSelectedCollege(null)
-    toast.success('College added successfully!')
+    setIsSaving(true)
+
+    try {
+      const newCollege: College = {
+        name: selectedCollege.value,
+        category: selectedCategory,
+        applicationStatus: 'Planning'
+      }
+
+      const response = await fetch('/api/colleges', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newCollege)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save college')
+      }
+
+      const data = await response.json()
+      setColleges(data.collegeList)
+      setSelectedCollege(null)
+      toast.success('College added successfully!')
+    } catch (error) {
+      console.error('Error adding college:', error)
+      toast.error('Failed to add college to your list')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
-  const removeCollege = (id: string) => {
-    setColleges(prev => prev.filter(college => college.id !== id))
-    toast.success('College removed')
+  const removeCollege = async (college: College) => {
+    if (!session) {
+      toast.error('You must be signed in to modify your college list')
+      return
+    }
+    
+    try {
+      // Optimistically update UI
+      setColleges(prev => prev.filter(c => c._id !== college._id))
+      
+      // Update the database by sending the updated list without the removed college
+      const updatedList = colleges.filter(c => c._id !== college._id)
+      
+      const response = await fetch('/api/colleges', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ collegeList: updatedList })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update college list')
+      }
+      
+      toast.success('College removed successfully!')
+    } catch (error) {
+      console.error('Error removing college:', error)
+      toast.error('Failed to remove college')
+      
+      // Restore the college if the server request failed
+      const response = await fetch('/api/colleges')
+      if (response.ok) {
+        const data = await response.json()
+        setColleges(data.collegeList || [])
+      }
+    }
   }
 
   const getCategoryColor = (category: College['category']) => {
@@ -95,6 +175,16 @@ export default function CollegeListComponent() {
       case 'Safety':
         return 'bg-green-100 text-green-800'
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="card mt-8">
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -144,8 +234,17 @@ export default function CollegeListComponent() {
           </select>
         </div>
 
-        <button type="submit" className="btn-primary w-full">
-          Add College
+        <button 
+          type="submit" 
+          className="btn-primary w-full flex items-center justify-center"
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <>
+              <span className="animate-spin h-4 w-4 mr-2 border-b-2 border-white rounded-full"></span>
+              Saving...
+            </>
+          ) : 'Add College'}
         </button>
       </form>
 
@@ -157,7 +256,7 @@ export default function CollegeListComponent() {
         ) : (
           colleges.map(college => (
             <motion.div
-              key={college.id}
+              key={college._id || college.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
@@ -168,9 +267,14 @@ export default function CollegeListComponent() {
                 <span className={`inline-block px-2 py-1 text-sm rounded-full mt-1 ${getCategoryColor(college.category)}`}>
                   {college.category}
                 </span>
+                {college.applicationStatus && (
+                  <span className="ml-2 inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+                    {college.applicationStatus}
+                  </span>
+                )}
               </div>
               <button
-                onClick={() => removeCollege(college.id)}
+                onClick={() => removeCollege(college)}
                 className="text-text-secondary hover:text-red-600 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

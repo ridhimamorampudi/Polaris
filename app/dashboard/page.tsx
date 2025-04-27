@@ -222,7 +222,7 @@ export default function Dashboard() {
                   )}
                 </div>
                 <Link 
-                  href="/colleges"
+                  href="/profile"
                   className="inline-flex items-center text-primary hover:text-primary-dark transition-colors"
                 >
                   <span>Manage Colleges</span>
