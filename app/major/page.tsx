@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const popularMajors = [
   'Computer Science',
@@ -23,6 +24,26 @@ export default function MajorSelection() {
   const [backupMajor, setBackupMajor] = React.useState('')
   const [searchPrimary, setSearchPrimary] = React.useState('')
   const [searchBackup, setSearchBackup] = React.useState('')
+  const [isLoading, setIsLoading] = React.useState(false)
+  const router = useRouter()
+
+  // Fetch existing majors on component mount
+  useEffect(() => {
+    const fetchMajors = async () => {
+      try {
+        const response = await fetch('/api/majors')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.primaryMajor) setPrimaryMajor(data.primaryMajor)
+          if (data.backupMajor) setBackupMajor(data.backupMajor)
+        }
+      } catch (error) {
+        console.error('Error fetching majors:', error)
+      }
+    }
+
+    fetchMajors()
+  }, [])
 
   const filteredPrimaryMajors = popularMajors.filter(major =>
     major.toLowerCase().includes(searchPrimary.toLowerCase())
@@ -32,13 +53,39 @@ export default function MajorSelection() {
     major.toLowerCase().includes(searchBackup.toLowerCase())
   )
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!primaryMajor) {
       toast.error('Please select a primary major')
       return
     }
-    toast.success('Majors saved successfully!')
-    window.location.href = '/activities'
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/majors', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          primaryMajor,
+          backupMajor
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('Majors saved successfully!')
+        router.push('/activities')
+      } else {
+        const data = await response.json()
+        toast.error(data.error || 'Failed to save majors')
+      }
+    } catch (error) {
+      console.error('Error saving majors:', error)
+      toast.error('An error occurred while saving majors')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -148,8 +195,9 @@ export default function MajorSelection() {
             <button
               onClick={handleSave}
               className="btn-primary"
+              disabled={isLoading}
             >
-              Save and Continue
+              {isLoading ? 'Saving...' : 'Save and Continue'}
             </button>
           </div>
         </motion.div>
