@@ -87,9 +87,9 @@ const Agent = ({
       });
       const data = await res.json();
       if (data.success && data.feedbackId) {
-        router.push(`/interview/${interviewId}/feedback`);
+        router.push(`/interviews/${interviewId}/feedback`);
       } else {
-        router.push('/');
+        router.push('/interviews');
       }
     };
     if (callStatus === CallStatus.FINISHED) {

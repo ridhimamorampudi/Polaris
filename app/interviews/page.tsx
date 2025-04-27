@@ -23,12 +23,20 @@ export default function InterviewsPage() {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedbackAvailable, setFeedbackAvailable] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (session?.user?.id) {
       fetchInterviews();
     }
   }, [session]);
+
+  // Check feedback availability whenever interviews are loaded
+  useEffect(() => {
+    if (interviews.length > 0 && session?.user?.id) {
+      checkFeedbackAvailability();
+    }
+  }, [interviews, session?.user?.id]);
 
   const fetchInterviews = async () => {
     try {
@@ -43,12 +51,45 @@ export default function InterviewsPage() {
     }
   };
 
+  const checkFeedbackAvailability = async () => {
+    try {
+      if (!session?.user?.id) return;
+
+      const feedbackStatus: Record<string, boolean> = {};
+
+      // Using Promise.all to fetch feedback status for all interviews in parallel
+      if (interviews.length > 0) {
+        await Promise.all(
+          interviews.map(async (interview) => {
+            const res = await fetch(`/api/feedback?interviewId=${interview._id}&userId=${session.user.id}`);
+            if (res.ok) {
+              const data = await res.json();
+              feedbackStatus[interview._id] = !!data.feedback;
+            }
+          })
+        );
+        setFeedbackAvailable(feedbackStatus);
+      }
+    } catch (error) {
+      console.error('Error checking feedback availability:', error);
+    }
+  };
+
   const handleCreateInterview = () => {
     router.push('/interviews/new');
   };
 
   const handleStartInterview = (interviewId: string) => {
     router.push(`/interviews/${interviewId}`);
+  };
+
+  const handleViewQuestionsOrFeedback = (interviewId: string) => {
+    if (feedbackAvailable[interviewId]) {
+      router.push(`/interviews/${interviewId}/feedback`);
+    } else {
+      // If no feedback, redirect to questions or some other view
+      router.push(`/interviews/${interviewId}`);
+    }
   };
 
   if (loading) {
@@ -141,7 +182,7 @@ export default function InterviewsPage() {
                       Start Interview
                     </button>
                     <button
-                      onClick={() => router.push(`/interviews/${interview._id}/questions`)}
+                      onClick={() => handleViewQuestionsOrFeedback(interview._id)}
                       className="btn-secondary flex items-center gap-2"
                     >
                       <FiList className="w-4 h-4" />
