@@ -1,8 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import Papa from 'papaparse'
+import Select from 'react-select'
 
 type College = {
   id: string
@@ -10,23 +12,69 @@ type College = {
   category: 'Reach' | 'Match' | 'Safety'
 }
 
+type CollegeOption = {
+  value: string
+  label: string
+}
+
 export default function CollegeList() {
   const [colleges, setColleges] = React.useState<College[]>([])
-  const [searchQuery, setSearchQuery] = React.useState('')
+  const [allColleges, setAllColleges] = useState<CollegeOption[]>([])
+  const [selectedCollege, setSelectedCollege] = useState<CollegeOption | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = React.useState<College['category']>('Match')
+
+  useEffect(() => {
+    const fetchColleges = async () => {
+      try {
+        const response = await fetch('/data/us_universities.csv')
+        const reader = response.body?.getReader()
+        const result = await reader?.read()
+        const decoder = new TextDecoder('utf-8')
+        const csv = decoder.decode(result?.value)
+
+        Papa.parse(csv, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const collegeNames = results.data
+              .map((row: any) => row['name']?.trim())
+              .filter(Boolean)
+              .sort();
+            setAllColleges(collegeNames.map(name => ({ value: name, label: name })));
+            setIsLoading(false);
+          },
+          error: (error: any) => {
+            console.error('Error parsing CSV:', error);
+            toast.error('Failed to load college list.');
+            setIsLoading(false);
+          }
+        });
+      } catch (error: any) {
+        console.error('Error fetching college data:', error);
+        toast.error('Failed to fetch college data.');
+        setIsLoading(false);
+      }
+    }
+
+    fetchColleges()
+  }, [])
 
   const handleAddCollege = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!searchQuery.trim()) return
+    if (!selectedCollege) {
+      toast.error('Please select a college.')
+      return
+    }
 
     const newCollege: College = {
       id: Date.now().toString(),
-      name: searchQuery.trim(),
+      name: selectedCollege.value,
       category: selectedCategory,
     }
 
     setColleges(prev => [...prev, newCollege])
-    setSearchQuery('')
+    setSelectedCollege(null)
     toast.success('College added successfully!')
   }
 
@@ -67,13 +115,21 @@ export default function CollegeList() {
                 <label htmlFor="college" className="block text-sm font-medium text-text-secondary">
                   College Name
                 </label>
-                <input
-                  type="text"
+                <Select
                   id="college"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-field mt-1"
-                  placeholder="Enter college name"
+                  instanceId="college-select"
+                  options={allColleges}
+                  value={selectedCollege}
+                  onChange={(option) => setSelectedCollege(option as CollegeOption)}
+                  placeholder="Search or select a college..."
+                  isLoading={isLoading}
+                  isClearable
+                  isSearchable
+                  className="mt-1"
+                  styles={{
+                    control: (base) => ({ ...base, /* Add any custom styles */ }),
+                    menu: (base) => ({ ...base, zIndex: 9999 /* Ensure dropdown is on top */ })
+                  }}
                   required
                 />
               </div>
