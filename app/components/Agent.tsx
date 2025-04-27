@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "../lib/utils";
 import { vapi } from "../lib/vapi.sdk";
 import { interviewer } from "../constants";
-import { createFeedback } from "../lib/actions/general.action";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -24,7 +23,6 @@ interface AgentProps {
   userId: string;
   interviewId: string;
   feedbackId?: string | null;
-  type: string;
   questions: string[];
 }
 
@@ -33,7 +31,6 @@ const Agent = ({
   userId,
   interviewId,
   feedbackId,
-  type,
   questions,
 }: AgentProps) => {
   const router = useRouter();
@@ -94,44 +91,28 @@ const Agent = ({
       }
     };
     if (callStatus === CallStatus.FINISHED) {
-      if (type === "generate") {
-        router.push("/");
+      if (messages.length === 0) {
+        // User ended call early, no feedback
+        router.push("/interviews");
       } else {
-        if (messages.length === 0) {
-          // User ended call early, no feedback
-          router.push("/interviews");
-        } else {
-          handleGenerateFeedback(messages);
-        }
+        handleGenerateFeedback(messages);
       }
     }
-  }, [messages, callStatus, interviewId, router, type, userId]);
+  }, [messages, callStatus, interviewId, router, userId]);
 
   const handleCall = async () => {
     setCallStatus(CallStatus.CONNECTING);
-    if (type === "generate") {
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!, {
-        variableValues: {
-          username: userName,
-          userid: userId,
-        },
-      });
-    } else {
-      let formattedQuestions = "";
-      if (questions) {
-        formattedQuestions = questions.map((question) => `- ${question}`).join("\n");
-      }
-      await vapi.start(interviewer, {
-        variableValues: {
-          questions: formattedQuestions,
-        },
-      });
+    let formattedQuestions = "";
+    if (questions) {
+      formattedQuestions = questions
+        .map((question) => `- ${question}`)
+        .join("\n");
     }
-  };
-
-  const handleDisconnect = () => {
-    setCallStatus(CallStatus.FINISHED);
-    vapi.stop();
+    await vapi.start(interviewer, {
+      variableValues: {
+        questions: formattedQuestions,
+      },
+    });
   };
 
   return (
@@ -188,7 +169,7 @@ const Agent = ({
         ) : (
           <button
             className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold shadow hover:bg-red-600 transition"
-            onClick={handleDisconnect}
+            onClick={() => setCallStatus(CallStatus.FINISHED)}
           >
             End
           </button>
