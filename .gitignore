@@ -33,6 +33,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.pyc
+
 # IDE specific files
 .vscode/
 .idea/ 

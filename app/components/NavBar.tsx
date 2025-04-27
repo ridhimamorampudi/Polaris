@@ -1,20 +1,28 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
+import { useSession, signOut } from 'next-auth/react'
+import { usePathname, useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 
 export default function NavBar() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const { data: session, status } = useSession()
+  const pathname = usePathname()
+  const router = useRouter()
 
-  useEffect(() => {
-    // Check if user is on auth page or home page
-    const isPublicPage = window.location.pathname === '/' || window.location.pathname === '/auth'
-    setIsAuthenticated(!isPublicPage)
-    setIsLoading(false)
-  }, [])
+  const handleSignOut = async () => {
+    try {
+      await signOut({ redirect: false })
+      toast.success('Signed out successfully')
+      router.push('/')
+    } catch (error) {
+      toast.error('Error signing out')
+      console.error('Sign out error:', error)
+    }
+  }
 
-  if (isLoading) {
+  if (status === 'loading') {
     return null // or a loading spinner
   }
 
@@ -23,22 +31,20 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-primary">Polaris</Link>
+            <Link href={session ? "/dashboard" : "/"} className="text-2xl font-bold text-primary">Polaris</Link>
           </div>
           <div className="hidden sm:flex sm:items-center sm:space-x-8">
-            {isAuthenticated ? (
+            {session ? (
               <>
                 <Link href="/dashboard" className="text-text-secondary hover:text-text-primary">Dashboard</Link>
                 <Link href="/profile" className="text-text-secondary hover:text-text-primary">Profile</Link>
-                <Link href="/colleges" className="text-text-secondary hover:text-text-primary">Colleges</Link>
                 <Link href="/major" className="text-text-secondary hover:text-text-primary">Major</Link>
                 <Link href="/activities" className="text-text-secondary hover:text-text-primary">Activities</Link>
                 <Link href="/essay" className="text-text-secondary hover:text-text-primary">Essay</Link>
+                <Link href="/counselor" className="text-text-secondary hover:text-text-primary">Counselor</Link>
+                <Link href="/resume" className="text-text-secondary hover:text-text-primary">Resume</Link>
                 <button 
-                  onClick={() => {
-                    // Handle logout
-                    window.location.href = '/'
-                  }}
+                  onClick={handleSignOut}
                   className="text-text-secondary hover:text-text-primary"
                 >
                   Sign Out
